@@ -16,8 +16,8 @@ from fairscale.nn.model_parallel.initialize import (
     model_parallel_is_initialized,
 )
 
-from utils.model import ModelArgs, Transformer
-from utils.tokenizer import Tokenizer
+from llama_recipes.inference.utils.model import ModelArgs, Transformer
+from llama_recipes.inference.utils.tokenizer import Tokenizer
 
 Role = Literal["system", "user", "assistant"]
 
@@ -82,6 +82,19 @@ class Llama:
 
         """
         if not torch.distributed.is_initialized():
+            rank = os.environ.get("RANK", None)
+            world_size = os.environ.get("WORLD_SIZE", None)
+            master_addr = os.environ.get("MASTER_ADDR", None)
+            master_port = os.environ.get("MASTER_PORT", None)
+            if not rank:
+                os.environ["RANK"] = "0"
+            if not world_size:
+                os.environ["WORLD_SIZE"] = "1"
+            if not master_addr:
+                os.environ["MASTER_ADDR"] = "127.0.0.1"
+            if not master_port:
+                os.environ["MASTER_PORT"] = "29500"
+            print(f"Torch distributed is not initialiazed, initializing rank {rank}, world_size: {world_size}, master_addr: {master_addr}, master_port: {master_port}")
             torch.distributed.init_process_group("nccl")
         if not model_parallel_is_initialized():
             if model_parallel_size is None:
@@ -393,6 +406,47 @@ class Llama:
             }
             for t, unsafe in zip(generation_tokens, unsafe_requests)
         ]
+    
+    def safety_check(
+        self,
+        prompt: str,
+        temperature: float = 0.6,
+        top_p: float = 0.9,
+        max_gen_len: Optional[int] = None,
+        echo: bool = False,
+    ) -> List[CompletionPrediction]:
+        """
+        Perform text completion for a list of prompts using the language generation model.
+
+        Args:
+            prompts (List[str]): List of text prompts for completion.
+            temperature (float, optional): Temperature value for controlling randomness in sampling. Defaults to 0.6.
+            top_p (float, optional): Top-p probability threshold for nucleus sampling. Defaults to 0.9.
+            max_gen_len (Optional[int], optional): Maximum length of the generated completion sequence.
+                If not provided, it's set to the model's maximum sequence length minus 1.
+            logprobs (bool, optional): Flag indicating whether to compute token log probabilities. Defaults to False.
+            echo (bool, optional): Flag indicating whether to include prompt tokens in the generated output. Defaults to False.
+
+        Returns:
+            List[CompletionPrediction]: List of completion predictions, each containing the generated text completion.
+
+        Note:
+            This method generates text completions for the provided prompts, employing nucleus sampling to introduce controlled randomness.
+            If logprobs is True, token log probabilities are computed for each generated token.
+
+        """
+        if max_gen_len is None:
+            max_gen_len = self.model.params.max_seq_len - 1
+        prompt_tokens = [self.tokenizer.encode(prompt, bos=True, eos=False)]
+        generation_tokens = self.generate(
+            prompt_tokens=prompt_tokens,
+            max_gen_len=max_gen_len,
+            temperature=temperature,
+            top_p=top_p,
+            logprobs=False,
+            echo=echo,
+        )
+        return {"generation": self.tokenizer.decode(generation_tokens[0])}
 
 
 def sample_top_p(probs, p):

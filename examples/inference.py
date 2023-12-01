@@ -32,7 +32,8 @@ def main(
     length_penalty: int=1, #[optional] Exponential penalty to the length that is used with beam-based generation. 
     enable_azure_content_safety: bool=False, # Enable safety check with Azure content safety api
     enable_sensitive_topics: bool=False, # Enable check for sensitive topics using AuditNLG APIs
-    enable_salesforce_content_safety: bool=True, # Enable safety check with Salesforce safety flan t5
+    enable_salesforce_content_safety: bool=False, # Enable safety check with Salesforce safety flan t5
+    enable_safe_llama_content_safety: bool=True,
     max_padding_length: int=None, # the max padding length to be used with tokenizer padding the prompts.
     use_fast_kernels: bool = False, # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
     **kwargs
@@ -74,9 +75,12 @@ def main(
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     
+    # TODO if the safe_llama content safety model is enabled, the checkpoint dir needs to be provided.
+    # Add this check and set the variable here or change the way this is fetched
     safety_checker = get_safety_checker(enable_azure_content_safety,
                                         enable_sensitive_topics,
                                         enable_salesforce_content_safety,
+                                        enable_safe_llama_content_safety
                                         )
 
     # Safety check of the user prompt

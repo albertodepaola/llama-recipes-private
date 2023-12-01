@@ -4,6 +4,7 @@
 import os
 import torch
 import warnings
+from llama_recipes.inference.safety_check import safety_check
 
 
 # Class for performing safety checks using AuditNLG library
@@ -147,12 +148,41 @@ class AzureSaftyChecker(object):
 
         return "Azure Content Saftey API", is_safe, report
 
+class SafeLlamaSafetyChecker(object):
+    def __init__(self):
+        # TODO set this from the get function or a better way.
+        self.ckpt_dir = "/home/ubuntu/projects/llama/models/guard-llama/"
+        self.tokenizer_path = "/home/ubuntu/projects/llama/models/guard-llama/tokenizer.model"
+        pass
+
+    def __call__(self, output_text):
+
+        result = safety_check(prompt=output_text, 
+                    ckpt_dir=self.ckpt_dir,
+                    tokenizer_path=self.tokenizer_path,
+                    )
+        
+        is_safe = result[0].split(" ")[0] == "safe"    
+            
+        report = result[0]
+        # if not is_safe:
+            
+        #     keys = ["toxicity", "hate", "identity", "violence", "physical", "sexual", "profanity", "biased"]
+        #     scores = {}
+        #     for k, i in zip(keys, range(3,20,2)):
+        #         scores[k] = round(outputs.scores[i][0,true_false_ids].softmax(dim=0)[0].item(), 5)
+            
+        #     report += "|" + "|".join(f"{n:^10}" for n in scores.keys()) + "|\n"
+        #     report += "|" + "|".join(f"{n:^10}" for n in scores.values()) + "|\n"
+        return "Safe Llama", is_safe, report
+        
 
 # Function to load the PeftModel for performance optimization
 # Function to determine which safety checker to use based on the options selected
 def get_safety_checker(enable_azure_content_safety,
                        enable_sensitive_topics,
                        enable_salesforce_content_safety,
+                       enable_safe_llama_content_safety
                        ):
     safety_checker = []
     if enable_azure_content_safety:
@@ -161,6 +191,8 @@ def get_safety_checker(enable_azure_content_safety,
         safety_checker.append(AuditNLGSensitiveTopics())
     if enable_salesforce_content_safety:
         safety_checker.append(SalesforceSafetyChecker())
+    if enable_safe_llama_content_safety:
+        safety_checker.append(SafeLlamaSafetyChecker())
     return safety_checker
 
 

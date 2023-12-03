@@ -32,8 +32,8 @@ def main(
     length_penalty: int=1, #[optional] Exponential penalty to the length that is used with beam-based generation. 
     enable_azure_content_safety: bool=False, # Enable safety check with Azure content safety api
     enable_sensitive_topics: bool=False, # Enable check for sensitive topics using AuditNLG APIs
-    enable_salesforce_content_safety: bool=False, # Enable safety check with Salesforce safety flan t5
-    enable_safe_llama_content_safety: bool=True,
+    enable_salesforce_content_safety: bool=True, # Enable safety check with Salesforce safety flan t5
+    enable_safe_llama_content_safety: bool=False,
     safe_llama_model_name: str=None,
     max_padding_length: int=None, # the max padding length to be used with tokenizer padding the prompts.
     use_fast_kernels: bool = False, # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
@@ -129,7 +129,7 @@ def main(
     output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
     # Safety check of the model output
-    safety_results = [check(output_text) for check in safety_checker]
+    safety_results = [check(output_text, agent_type="Agent") for check in safety_checker]
     are_safe = all([r[1] for r in safety_results])
     if are_safe:
         print("User input and model output deemed safe.")

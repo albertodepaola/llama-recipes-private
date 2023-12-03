@@ -77,6 +77,7 @@ def safety_check(
         prompt: str,
         ckpt_dir: str,
         tokenizer_path: str,
+        agent_type: str = "User", 
         temperature: float = 1,
         top_p: float = 1,
         max_seq_len: int = 2048,
@@ -98,17 +99,17 @@ def safety_check(
         max_gen_len (int, optional): The maximum length of generated sequences. Defaults to 64.
         max_batch_size (int, optional): The maximum batch size for generating sequences. Defaults to 4.
     """
+    # TODO change the agent type based on an appropiate variable
+    formatted_prompt = PROMPT_TEMPLATE.substitute(prompt=prompt, agent_type=agent_type)
+
+    # print(formatted_prompt)
+    
     generator = Llama.build(
         ckpt_dir=ckpt_dir,
         tokenizer_path=tokenizer_path,
         max_seq_len=max_seq_len,
         max_batch_size=max_batch_size,
     )
-
-    # TODO change the agent type based on an appropiate variable
-    formatted_prompt = PROMPT_TEMPLATE.substitute(prompt=prompt, agent_type="User")
-
-    print(formatted_prompt)
 
     results = generator.text_completion(
         [formatted_prompt],

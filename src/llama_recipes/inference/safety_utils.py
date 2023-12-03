@@ -9,10 +9,10 @@ from llama_recipes.inference.safety_check import safety_check
 
 # Class for performing safety checks using AuditNLG library
 class AuditNLGSensitiveTopics(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
-    def __call__(self, output_text):
+    def __call__(self, output_text, **kwargs):
         try:
             from auditnlg.safety.exam import safety_scores
         except ImportError as e:
@@ -34,10 +34,10 @@ class AuditNLGSensitiveTopics(object):
     
     
 class SalesforceSafetyChecker(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
-    def __call__(self, output_text):
+    def __call__(self, output_text, **kwargs):
         from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, AutoConfig
 
         config = AutoConfig.from_pretrained("Salesforce/safety-flan-t5-base")
@@ -85,7 +85,7 @@ class SalesforceSafetyChecker(object):
 
 # Class for performing safety checks using Azure Content Safety service
 class AzureSaftyChecker(object):
-    def __init__(self):
+    def __init__(sel, **kwargs):
         try:
             from azure.ai.contentsafety import ContentSafetyClient
             from azure.core.credentials import AzureKeyCredential
@@ -103,7 +103,7 @@ class AzureSaftyChecker(object):
 
         self.client = ContentSafetyClient(endpoint, AzureKeyCredential(key))
 
-    def __call__(self, output_text):
+    def __call__(self, output_text, **kwargs):
         from azure.core.exceptions import HttpResponseError
         from azure.ai.contentsafety.models import AnalyzeTextOptions, TextCategory
 
@@ -155,11 +155,14 @@ class SafeLlamaSafetyChecker(object):
         self.tokenizer_path = self.ckpt_dir + "/tokenizer.model"
         pass
 
-    def __call__(self, output_text):
+    def __call__(self, output_text, **kwargs):
+
+        agent_type = kwargs.get('agent_type', "User")
 
         result = safety_check(prompt=output_text, 
                     ckpt_dir=self.ckpt_dir,
                     tokenizer_path=self.tokenizer_path,
+                    agent_type=agent_type
                     )
         
         is_safe = result[0].split(" ")[0] == "safe"    

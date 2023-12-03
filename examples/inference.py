@@ -34,6 +34,7 @@ def main(
     enable_sensitive_topics: bool=False, # Enable check for sensitive topics using AuditNLG APIs
     enable_salesforce_content_safety: bool=False, # Enable safety check with Salesforce safety flan t5
     enable_safe_llama_content_safety: bool=True,
+    safe_llama_model_name: str=None,
     max_padding_length: int=None, # the max padding length to be used with tokenizer padding the prompts.
     use_fast_kernels: bool = False, # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
     **kwargs
@@ -49,6 +50,12 @@ def main(
     else:
         print("No user prompt provided. Exiting.")
         sys.exit(1)
+
+    if enable_safe_llama_content_safety:
+        if not safe_llama_model_name:
+            print("if enable_safe_llama_content_safety is used, provide the model path with --safe_llama_model_name")
+            sys.exit(1)
+
     
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
@@ -80,7 +87,8 @@ def main(
     safety_checker = get_safety_checker(enable_azure_content_safety,
                                         enable_sensitive_topics,
                                         enable_salesforce_content_safety,
-                                        enable_safe_llama_content_safety
+                                        enable_safe_llama_content_safety,
+                                        guard_lama_path=safe_llama_model_name
                                         )
 
     # Safety check of the user prompt

@@ -149,10 +149,10 @@ class AzureSaftyChecker(object):
         return "Azure Content Saftey API", is_safe, report
 
 class SafeLlamaSafetyChecker(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         # TODO set this from the get function or a better way.
-        self.ckpt_dir = "/home/ubuntu/projects/llama/models/guard-llama/"
-        self.tokenizer_path = "/home/ubuntu/projects/llama/models/guard-llama/tokenizer.model"
+        self.ckpt_dir = kwargs.get('guard_lama_path', None)
+        self.tokenizer_path = self.ckpt_dir + "/tokenizer.model"
         pass
 
     def __call__(self, output_text):
@@ -182,17 +182,17 @@ class SafeLlamaSafetyChecker(object):
 def get_safety_checker(enable_azure_content_safety,
                        enable_sensitive_topics,
                        enable_salesforce_content_safety,
-                       enable_safe_llama_content_safety
-                       ):
+                       enable_safe_llama_content_safety,
+                       **kwargs):
     safety_checker = []
     if enable_azure_content_safety:
-        safety_checker.append(AzureSaftyChecker())
+        safety_checker.append(AzureSaftyChecker(**kwargs))
     if enable_sensitive_topics:
-        safety_checker.append(AuditNLGSensitiveTopics())
+        safety_checker.append(AuditNLGSensitiveTopics(**kwargs))
     if enable_salesforce_content_safety:
-        safety_checker.append(SalesforceSafetyChecker())
+        safety_checker.append(SalesforceSafetyChecker(**kwargs))
     if enable_safe_llama_content_safety:
-        safety_checker.append(SafeLlamaSafetyChecker())
+        safety_checker.append(SafeLlamaSafetyChecker(**kwargs))
     return safety_checker
 
 

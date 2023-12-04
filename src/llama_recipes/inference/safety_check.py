@@ -102,8 +102,6 @@ def safety_check(
     # TODO change the agent type based on an appropiate variable
     formatted_prompt = PROMPT_TEMPLATE.substitute(prompt=prompt, agent_type=agent_type)
 
-    # print(formatted_prompt)
-    
     generator = Llama.build(
         ckpt_dir=ckpt_dir,
         tokenizer_path=tokenizer_path,
@@ -111,13 +109,12 @@ def safety_check(
         max_batch_size=max_batch_size,
     )
 
-    results = generator.text_completion(
-        [formatted_prompt],
+    result = generator.safety_check(
+        formatted_prompt,
         max_gen_len=max_gen_len,
         temperature=temperature,
         top_p=top_p,
     )
-    print(results)
-    return results[0]['generation']
+    return result
     
 

@@ -94,7 +94,6 @@ class Llama:
                 os.environ["MASTER_ADDR"] = "127.0.0.1"
             if not master_port:
                 os.environ["MASTER_PORT"] = "29500"
-            print(f"Torch distributed is not initialiazed, initializing rank {rank}, world_size: {world_size}, master_addr: {master_addr}, master_port: {master_port}")
             torch.distributed.init_process_group("nccl")
         if not model_parallel_is_initialized():
             if model_parallel_size is None:
@@ -412,7 +411,7 @@ class Llama:
         top_p: float = 0.9,
         max_gen_len: Optional[int] = None,
         echo: bool = False,
-    ) -> List[CompletionPrediction]:
+    ) -> str:
         """
         Perform text completion for a list of prompts using the language generation model.
 
@@ -444,7 +443,8 @@ class Llama:
             logprobs=False,
             echo=echo,
         )
-        return {"generation": self.tokenizer.decode(generation_tokens[0])}
+        single_result_list = self.tokenizer.decode(generation_tokens[0])
+        return single_result_list[0]
 
 
 def sample_top_p(probs, p):

@@ -159,15 +159,18 @@ class SafeLlamaSafetyChecker(object):
 
         agent_type = kwargs.get('agent_type', "User")
 
+        # FIXME might be better to build the prompt here instead of using the safety_check function
         result = safety_check(prompt=output_text, 
                     ckpt_dir=self.ckpt_dir,
                     tokenizer_path=self.tokenizer_path,
                     agent_type=agent_type
                     )
+        # TODO this check seems brittle for an LLM. Based on the prompt it will change
+        splitted_result = result.split("\n")[0];
+        is_safe = splitted_result == "safe"    
         
-        is_safe = result[0].split(" ")[0] == "safe"    
-            
-        report = result[0]
+        report = result
+        # TODO Add the name of the categories from the prompt.
         # if not is_safe:
             
         #     keys = ["toxicity", "hate", "identity", "violence", "physical", "sexual", "profanity", "biased"]
@@ -177,7 +180,7 @@ class SafeLlamaSafetyChecker(object):
             
         #     report += "|" + "|".join(f"{n:^10}" for n in scores.keys()) + "|\n"
         #     report += "|" + "|".join(f"{n:^10}" for n in scores.values()) + "|\n"
-        return "Safe Llama", is_safe, report
+        return "Guard Llama", is_safe, report
         
 
 # Function to load the PeftModel for performance optimization

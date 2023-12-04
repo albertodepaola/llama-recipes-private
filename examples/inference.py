@@ -33,8 +33,8 @@ def main(
     enable_azure_content_safety: bool=False, # Enable safety check with Azure content safety api
     enable_sensitive_topics: bool=False, # Enable check for sensitive topics using AuditNLG APIs
     enable_salesforce_content_safety: bool=True, # Enable safety check with Salesforce safety flan t5
-    enable_safe_llama_content_safety: bool=False,
-    safe_llama_model_name: str=None,
+    enable_llamaguard_content_safety: bool=False,
+    llamaguard_model_name: str=None,
     max_padding_length: int=None, # the max padding length to be used with tokenizer padding the prompts.
     use_fast_kernels: bool = False, # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
     **kwargs
@@ -51,9 +51,9 @@ def main(
         print("No user prompt provided. Exiting.")
         sys.exit(1)
 
-    if enable_safe_llama_content_safety:
-        if not safe_llama_model_name:
-            print("if enable_safe_llama_content_safety is used, provide the model path with --safe_llama_model_name")
+    if enable_llamaguard_content_safety:
+        if not llamaguard_model_name:
+            print("if enable_llamaguard_content_safety is used, provide the model path with --llamaguard_model_name")
             sys.exit(1)
 
     
@@ -82,13 +82,13 @@ def main(
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     
-    # TODO if the safe_llama content safety model is enabled, the checkpoint dir needs to be provided.
+    # TODO if the llamaguard content safety model is enabled, the checkpoint dir needs to be provided.
     # Add this check and set the variable here or change the way this is fetched
     safety_checker = get_safety_checker(enable_azure_content_safety,
                                         enable_sensitive_topics,
                                         enable_salesforce_content_safety,
-                                        enable_safe_llama_content_safety,
-                                        guard_lama_path=safe_llama_model_name
+                                        enable_llamaguard_content_safety,
+                                        guard_lama_path=llamaguard_model_name
                                         )
 
     # Safety check of the user prompt

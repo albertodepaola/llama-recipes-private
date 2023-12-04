@@ -109,7 +109,7 @@ def safety_check(
         max_batch_size=max_batch_size,
     )
 
-    result = generator.safety_check(
+    result = generator.single_prompt_completion(
         formatted_prompt,
         max_gen_len=max_gen_len,
         temperature=temperature,

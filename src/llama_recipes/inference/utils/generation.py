@@ -404,7 +404,7 @@ class Llama:
             for t, unsafe in zip(generation_tokens, unsafe_requests)
         ]
     
-    def safety_check(
+    def single_prompt_completion(
         self,
         prompt: str,
         temperature: float = 0.6,
@@ -413,24 +413,21 @@ class Llama:
         echo: bool = False,
     ) -> str:
         """
-        Perform text completion for a list of prompts using the language generation model.
+        Perform text completion for a single prompt using the language generation model.
 
         Args:
-            prompts (List[str]): List of text prompts for completion.
+            prompts (str): prompt for completion.
             temperature (float, optional): Temperature value for controlling randomness in sampling. Defaults to 0.6.
             top_p (float, optional): Top-p probability threshold for nucleus sampling. Defaults to 0.9.
             max_gen_len (Optional[int], optional): Maximum length of the generated completion sequence.
                 If not provided, it's set to the model's maximum sequence length minus 1.
-            logprobs (bool, optional): Flag indicating whether to compute token log probabilities. Defaults to False.
-            echo (bool, optional): Flag indicating whether to include prompt tokens in the generated output. Defaults to False.
+            
 
         Returns:
-            List[CompletionPrediction]: List of completion predictions, each containing the generated text completion.
+            str: single string with the decoded output from the model.
 
         Note:
             This method generates text completions for the provided prompts, employing nucleus sampling to introduce controlled randomness.
-            If logprobs is True, token log probabilities are computed for each generated token.
-
         """
         if max_gen_len is None:
             max_gen_len = self.model.params.max_seq_len - 1

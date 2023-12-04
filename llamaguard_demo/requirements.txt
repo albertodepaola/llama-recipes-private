@@ -1,0 +1,4 @@
+fire
+torch>=2.0.1
+fairscale
+sentencepiece

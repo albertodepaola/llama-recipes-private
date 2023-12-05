@@ -129,6 +129,7 @@ def main(
     output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
     # Safety check of the model output
+    # TODO put this in a constant coming from safety utils
     safety_results = [check(output_text, agent_type="Agent") for check in safety_checker]
     are_safe = all([r[1] for r in safety_results])
     if are_safe:

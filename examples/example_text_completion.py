@@ -102,8 +102,7 @@ def main(
 
         Provide your safety assessment for User in the above conversation:
         - First line must read 'safe' or 'unsafe'.
-        - If unsafe, a second line must include a comma-separated list of violated categories.
-        """
+        - If unsafe, a second line must include a comma-separated list of violated categories."""
     ]
     results = generator.text_completion(
         prompts,

@@ -1,5 +1,7 @@
 # Llama Guard standalone sample
 
+![Safety Checks](./llamaguard_demo/imgs/Safety_Checks.png)
+
 ## Requirements and installation
 Access to the Llama Guard models
 

@@ -24,13 +24,7 @@ def main(
                     top_p=top_p,)
         
         print(result)
-        # is_safe = result[0].split(" ")[0] == "safe"    
-
-        # print(f"Is safe? {is_safe}")
-            
-        # report = result[0]
-
-        # print(f"Report: {report}")
+        
 
 
 if __name__ == "__main__":

@@ -225,11 +225,11 @@ class LlamaGuardSafetyChecker(object):
         agent_type = kwargs.get('agent_type', "User")
 
         # defaults
-        temperature: float = 1,
-        top_p: float = 1,
-        max_seq_len: int = 2048,
-        max_gen_len: int = 64,
-        max_batch_size: int = 4,
+        temperature = 1
+        top_p = 1
+        max_seq_len = 2048
+        max_gen_len = 64
+        max_batch_size = 4
 
         # TODO if the type is Agent, the the user prompt needs to be preppended with a `User:` text. 
         # It might be as simple as prepending the `User: ` text before the prompt.

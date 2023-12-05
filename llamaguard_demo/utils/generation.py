@@ -267,7 +267,7 @@ class Llama:
         """
         if max_gen_len is None:
             max_gen_len = self.model.params.max_seq_len - 1
-        prompt_tokens = [self.tokenizer.encode(prompt, bos=True, eos=False)]
+        prompt_tokens = [self.tokenizer.encode(f"{B_INST} {prompt.strip()} {E_INST}", bos=True, eos=False)]
         generation_tokens = self.generate(
             prompt_tokens=prompt_tokens,
             max_gen_len=max_gen_len,

@@ -8,13 +8,13 @@ This folder contains the files to run inference with Llama Guard and the functio
 
 ## How to run the examples
 The examples can be run standalone, using the prompts in the `example_text_completion.py` file, or as a safety checker when running the regular inference script.
-## Text Completion Examples 
+### Text Completion Examples 
 This file contain sample prompts to test Llama Guard directly. Only Llama Guard is loaded and the Agent prompt is a sample model output for testing only.
 Use this command to run:
 
 `torchrun --nproc_per_node 1 examples/llama_guard/example_text_completion.py  --ckpt_dir <path_to_checkpoints>  --tokenizer_path <path_to_tokenizer>  --max_seq_len 2048 --max_batch_size 6`
 
-## Inferece Safety Checker
+### Inference Safety Checker
 When running the regular inference script with prompts, Llama Guard will be used as a safety checker on the user prompt and the model output. If both are safe, the result will be show, else a message with the error will be show, with the word unsafe and a comma separated list of categories infringed. As the model is not quantized, it requires more GPU than the direct examples, to load the desired Llama model for inference and the Llama Guard model for safety checks. Using Llama 2 7B quantized, this was able to be run in a machine with four A10G GPUs.
 Use this command for testing with a quantized Llama model, modifying the values accordingly:
 

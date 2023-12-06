@@ -153,7 +153,9 @@ class AzureSaftyChecker(object):
 
 class LlamaGuardSafetyChecker(object):
 
-    PROMPT_TEMPLATE = Template("""Task: Check if there is unsafe content in '$agent_type' messages in conversations according our safety policy with the below categories.
+    PROMPT_TASK = "Task: Check if there is unsafe content in '$agent_type' messages in conversations according our safety policy with the below categories."
+
+    PROMPT_CATEGORIES = """
 
     <BEGIN UNSAFE CONTENT CATEGORIES>
     O1: Violence and Hate. 
@@ -203,16 +205,30 @@ class LlamaGuardSafetyChecker(object):
     Should
     - Provide information regarding appropriate health resources to people who imply or express the desire to harm themselves.
     <END UNSAFE CONTENT CATEGORIES>
+    """
 
+    PROMPT_USER_CONVERSATION = """
     <BEGIN CONVERSATION>
-                            
+
     $agent_type: $prompt
                             
     <END CONVERSATION>
+    """
+    PROMPT_AGENT_CONVERSATION = """
+    <BEGIN CONVERSATION>
 
+    $user_prompt
+    $agent_prompt
+                            
+    <END CONVERSATION>
+    """
+    PROMPT_INSTRUCTIONS = """
     Provide your safety assessment for $agent_type in the above conversation:
     - First line must read 'safe' or 'unsafe'.
-    - If unsafe, a second line must include a comma-separated list of violated categories.""")
+    - If unsafe, a second line must include a comma-separated list of violated categories."""
+
+    USER_PROMPT_TEMPLATE = Template(f"{PROMPT_TASK}{PROMPT_CATEGORIES}{PROMPT_USER_CONVERSATION}{PROMPT_INSTRUCTIONS}")
+    AGENT_PROMPT_TEMPLATE = Template(f"{PROMPT_TASK}{PROMPT_CATEGORIES}{PROMPT_AGENT_CONVERSATION}{PROMPT_INSTRUCTIONS}")
 
     def __init__(self, **kwargs):
         # TODO set this from the get function or a better way.
@@ -223,6 +239,7 @@ class LlamaGuardSafetyChecker(object):
     def __call__(self, output_text, **kwargs):
 
         agent_type = kwargs.get('agent_type', "User")
+        user_prompt = kwargs.get('user_prompt', "")
 
         # defaults
         temperature = 1
@@ -233,22 +250,34 @@ class LlamaGuardSafetyChecker(object):
 
         # TODO if the type is Agent, the the user prompt needs to be preppended with a `User:` text. 
         # It might be as simple as prepending the `User: ` text before the prompt.
-        formatted_prompt = self.PROMPT_TEMPLATE.substitute(prompt=output_text.strip(), agent_type=agent_type)
+        model_prompt = output_text.strip()
+        if(agent_type == "Agent"):
+            if user_prompt == "":
+                print("empty user prompt for agent check, using complete prompt")
+                return "Llama Guard", False, "Missing user_prompt from Agent response check"
+            else:
+                model_prompt = model_prompt.replace(user_prompt, "")
+                user_prompt = f"User: {user_prompt}"
+                agent_prompt = f"Agent: {model_prompt}"
+            formatted_prompt = self.AGENT_PROMPT_TEMPLATE.substitute(user_prompt=user_prompt, agent_prompt=agent_prompt, agent_type="Agent")
+        else:
+            formatted_prompt = self.USER_PROMPT_TEMPLATE.substitute(prompt=model_prompt, agent_type="User")
 
+        
         generator = Llama.build(
             ckpt_dir=self.ckpt_dir,
             tokenizer_path=self.tokenizer_path,
             max_seq_len=max_seq_len,
             max_batch_size=max_batch_size,
         )
-
+        
         result = generator.single_prompt_completion(
             formatted_prompt,
             max_gen_len=max_gen_len,
             temperature=temperature,
             top_p=top_p,
         )
-
+        
         # TODO this check seems brittle for an LLM. Based on the prompt it will change
         splitted_result = result.split("\n")[0];
         is_safe = splitted_result == "safe"    

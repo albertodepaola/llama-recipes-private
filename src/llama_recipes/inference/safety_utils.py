@@ -4,7 +4,7 @@
 import os
 import torch
 import warnings
-from llama_recipes.inference.utils import Llama
+from llama_guard import Llama
 from typing import List
 from string import Template
 

@@ -82,18 +82,6 @@ class Llama:
 
         """
         if not torch.distributed.is_initialized():
-            rank = os.environ.get("RANK", None)
-            world_size = os.environ.get("WORLD_SIZE", None)
-            master_addr = os.environ.get("MASTER_ADDR", None)
-            master_port = os.environ.get("MASTER_PORT", None)
-            if not rank:
-                os.environ["RANK"] = "0"
-            if not world_size:
-                os.environ["WORLD_SIZE"] = "1"
-            if not master_addr:
-                os.environ["MASTER_ADDR"] = "127.0.0.1"
-            if not master_port:
-                os.environ["MASTER_PORT"] = "29500"
             torch.distributed.init_process_group("nccl")
         if not model_parallel_is_initialized():
             if model_parallel_size is None:

@@ -11,7 +11,7 @@ import time
 import torch
 from transformers import LlamaTokenizer
 
-from llama_recipes.inference.safety_utils import get_safety_checker
+from llama_recipes.inference.safety_utils import get_safety_checker, AGENT_TYPE_AGENT
 from llama_recipes.inference.model_utils import load_model, load_peft_model
 
 
@@ -82,8 +82,6 @@ def main(
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     
-    # TODO if the llamaguard content safety model is enabled, the checkpoint dir needs to be provided.
-    # Add this check and set the variable here or change the way this is fetched
     safety_checker = get_safety_checker(enable_azure_content_safety,
                                         enable_sensitive_topics,
                                         enable_salesforce_content_safety,
@@ -129,8 +127,7 @@ def main(
     output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
     # Safety check of the model output
-    # TODO put this in a constant coming from safety utils
-    safety_results = [check(output_text, agent_type="Agent", user_prompt=user_prompt) for check in safety_checker]
+    safety_results = [check(output_text, agent_type=AGENT_TYPE_AGENT, user_prompt=user_prompt) for check in safety_checker]
     are_safe = all([r[1] for r in safety_results])
     if are_safe:
         print("User input and model output deemed safe.")

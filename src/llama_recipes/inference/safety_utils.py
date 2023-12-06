@@ -8,7 +8,8 @@ from llama_guard import Llama
 from typing import List
 from string import Template
 
-
+AGENT_TYPE_AGENT = "Agent"
+AGENT_TYPE_USER = "User"
 
 # Class for performing safety checks using AuditNLG library
 class AuditNLGSensitiveTopics(object):
@@ -231,14 +232,13 @@ class LlamaGuardSafetyChecker(object):
     AGENT_PROMPT_TEMPLATE = Template(f"{PROMPT_TASK}{PROMPT_CATEGORIES}{PROMPT_AGENT_CONVERSATION}{PROMPT_INSTRUCTIONS}")
 
     def __init__(self, **kwargs):
-        # TODO set this from the get function or a better way.
         self.ckpt_dir = kwargs.get('guard_lama_path', None)
         self.tokenizer_path = self.ckpt_dir + "/tokenizer.model"
         pass
 
     def __call__(self, output_text, **kwargs):
 
-        agent_type = kwargs.get('agent_type', "User")
+        agent_type = kwargs.get('agent_type', AGENT_TYPE_USER)
         user_prompt = kwargs.get('user_prompt', "")
 
         # defaults
@@ -248,10 +248,8 @@ class LlamaGuardSafetyChecker(object):
         max_gen_len = 64
         max_batch_size = 4
 
-        # TODO if the type is Agent, the the user prompt needs to be preppended with a `User:` text. 
-        # It might be as simple as prepending the `User: ` text before the prompt.
         model_prompt = output_text.strip()
-        if(agent_type == "Agent"):
+        if(agent_type == AGENT_TYPE_AGENT):
             if user_prompt == "":
                 print("empty user prompt for agent check, using complete prompt")
                 return "Llama Guard", False, "Missing user_prompt from Agent response check"
@@ -259,9 +257,9 @@ class LlamaGuardSafetyChecker(object):
                 model_prompt = model_prompt.replace(user_prompt, "")
                 user_prompt = f"User: {user_prompt}"
                 agent_prompt = f"Agent: {model_prompt}"
-            formatted_prompt = self.AGENT_PROMPT_TEMPLATE.substitute(user_prompt=user_prompt, agent_prompt=agent_prompt, agent_type="Agent")
+            formatted_prompt = self.AGENT_PROMPT_TEMPLATE.substitute(user_prompt=user_prompt, agent_prompt=agent_prompt, agent_type=AGENT_TYPE_AGENT)
         else:
-            formatted_prompt = self.USER_PROMPT_TEMPLATE.substitute(prompt=model_prompt, agent_type="User")
+            formatted_prompt = self.USER_PROMPT_TEMPLATE.substitute(prompt=model_prompt, agent_type=AGENT_TYPE_USER)
 
         
         generator = Llama.build(
@@ -278,21 +276,11 @@ class LlamaGuardSafetyChecker(object):
             top_p=top_p,
         )
         
-        # TODO this check seems brittle for an LLM. Based on the prompt it will change
         splitted_result = result.split("\n")[0];
         is_safe = splitted_result == "safe"    
-        
+       
         report = result
-        # TODO Add the name of the categories from the prompt.
-        # if not is_safe:
-            
-        #     keys = ["toxicity", "hate", "identity", "violence", "physical", "sexual", "profanity", "biased"]
-        #     scores = {}
-        #     for k, i in zip(keys, range(3,20,2)):
-        #         scores[k] = round(outputs.scores[i][0,true_false_ids].softmax(dim=0)[0].item(), 5)
-            
-        #     report += "|" + "|".join(f"{n:^10}" for n in scores.keys()) + "|\n"
-        #     report += "|" + "|".join(f"{n:^10}" for n in scores.values()) + "|\n"
+        
         return "Llama Guard", is_safe, report
         
 

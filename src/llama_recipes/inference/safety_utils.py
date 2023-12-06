@@ -7,9 +7,12 @@ import warnings
 from llama_guard import Llama
 from typing import List
 from string import Template
+from enum import Enum
 
-AGENT_TYPE_AGENT = "Agent"
-AGENT_TYPE_USER = "User"
+
+class AgentType(Enum):
+    AGENT = "Agent"
+    USER = "User"
 
 # Class for performing safety checks using AuditNLG library
 class AuditNLGSensitiveTopics(object):
@@ -238,7 +241,7 @@ class LlamaGuardSafetyChecker(object):
 
     def __call__(self, output_text, **kwargs):
 
-        agent_type = kwargs.get('agent_type', AGENT_TYPE_USER)
+        agent_type = kwargs.get('agent_type', AgentType.USER)
         user_prompt = kwargs.get('user_prompt', "")
 
         # defaults
@@ -249,7 +252,7 @@ class LlamaGuardSafetyChecker(object):
         max_batch_size = 4
 
         model_prompt = output_text.strip()
-        if(agent_type == AGENT_TYPE_AGENT):
+        if(agent_type == AgentType.AGENT):
             if user_prompt == "":
                 print("empty user prompt for agent check, using complete prompt")
                 return "Llama Guard", False, "Missing user_prompt from Agent response check"
@@ -257,9 +260,9 @@ class LlamaGuardSafetyChecker(object):
                 model_prompt = model_prompt.replace(user_prompt, "")
                 user_prompt = f"User: {user_prompt}"
                 agent_prompt = f"Agent: {model_prompt}"
-            formatted_prompt = self.AGENT_PROMPT_TEMPLATE.substitute(user_prompt=user_prompt, agent_prompt=agent_prompt, agent_type=AGENT_TYPE_AGENT)
+            formatted_prompt = self.AGENT_PROMPT_TEMPLATE.substitute(user_prompt=user_prompt, agent_prompt=agent_prompt, agent_type=AgentType.AGENT)
         else:
-            formatted_prompt = self.USER_PROMPT_TEMPLATE.substitute(prompt=model_prompt, agent_type=AGENT_TYPE_USER)
+            formatted_prompt = self.USER_PROMPT_TEMPLATE.substitute(prompt=model_prompt, agent_type=AgentType.USER)
 
         
         generator = Llama.build(

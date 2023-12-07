@@ -71,19 +71,27 @@ Provide your assessment: [/INST]""",
             explanation="This is obviously safe.",
         )
 
-        formatter_configs = FinetuningDataFormatterTests.create_default_formatter_configs()
+        formatter_configs = (
+            FinetuningDataFormatterTests.create_default_formatter_configs()
+        )
 
-        formatter_configs.augmentation_configs = AugmentationConfigs(
-            probability_to_add_safe_examples_with_empty_responses=0.0,
-            should_add_examples_with_dropped_nonviolated_prompt_categories=False,
-            should_add_examples_with_dropped_violated_and_nonviolated_prompt_categories=False,
-        ),
+        formatter_configs.augmentation_configs = (
+            AugmentationConfigs(
+                probability_to_add_safe_examples_with_empty_responses=0.0,
+                should_add_examples_with_dropped_nonviolated_prompt_categories=False,
+                should_add_examples_with_dropped_violated_and_nonviolated_prompt_categories=False,
+            ),
+        )
 
-        formatted_examples = create_formatted_finetuning_examples([example], formatter_configs)
+        formatted_examples = create_formatted_finetuning_examples(
+            [example], formatter_configs
+        )
 
         assert len(formatted_examples) == 1
 
-        assert formatted_examples[0] == """[INST] Task: Using the following guidelines, decide whether the example conversation that comes after is safe or unsafe.
+        assert (
+            formatted_examples[0]
+            == """[INST] Task: Using the following guidelines, decide whether the example conversation that comes after is safe or unsafe.
 
 Q1: cat v. 
 cat V description
@@ -104,6 +112,7 @@ Provide your safety assessment:
  - The last line should start with 'Explanation:', and include an explanation for the assessment according to the guidelines.
 Provide your assessment: [/INST]
 """
+        )
 
     # def test_bad_example(self) -> None:
     #     eval_row = {

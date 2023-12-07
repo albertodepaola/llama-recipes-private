@@ -35,7 +35,7 @@ class FinetuningDataFormatterTests(unittest.TestCase):
                     Category(name="cat Y", description="cat Y description"),
                     Category(name="cat Z", description="cat Z description"),
                 ],
-                category_code_prefix="G",
+                category_code_prefix="O",
             ),
             llama_guard_prompt_configs=LlamaGuardPromptConfigs(
                 instructions_format_string="""[INST] Task: Using the following guidelines, decide whether the example conversation that comes after is safe or unsafe.

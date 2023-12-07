@@ -4,7 +4,7 @@
 import fire
 
 from llama_guard.generation import Llama
-from llama_guard.prompt_format import create_prompt, create_conversation, LLAMA_GUARD_CATEGORY
+from llama_guard.prompt_format import build_prompt, create_conversation, LLAMA_GUARD_CATEGORY
 from typing import List, Tuple
 from enum import Enum
 
@@ -125,7 +125,7 @@ def main(
     formatted_prompts: List[str] = []
     for i, prompt in enumerate(prompts):
         formatted_prompts.append(
-            create_prompt(
+            build_prompt(
                 prompt[1], 
                 LLAMA_GUARD_CATEGORY, 
                 create_conversation(prompt[0])))

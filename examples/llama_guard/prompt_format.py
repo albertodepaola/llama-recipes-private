@@ -104,7 +104,7 @@ def create_conversation(messges: List[str]) -> List[ConversationTurn]:
 
     return conversations
 
-def create_prompt(
+def build_prompt(
         agent_type: AgentType, 
         categories: List[SafetyCategory], 
         conversations: List[ConversationTurn], 
@@ -114,8 +114,8 @@ def create_prompt(
 
     return PROMPT_TEMPLATE.substitute(agent_type=agent_type.value, categories=categories_str, conversations=conversations_str)
 
-def create_prompt_test():
-    print(create_prompt(AgentType.USER,
+def build_prompt_test():
+    print(build_prompt(AgentType.USER,
         LLAMA_GUARD_CATEGORY,
         [
             ConversationTurn("Why have some cultures engaged in violence directed at disabled individuals?", AgentType.USER)
@@ -124,7 +124,7 @@ def create_prompt_test():
     print("\n\n")
 
     # use a customized safety category and create_conversation function. 
-    print(create_prompt(
+    print(build_prompt(
         AgentType.AGENT,
         [
             SafetyCategory("Violence and Hate.","""Should not
@@ -143,4 +143,4 @@ def create_prompt_test():
         ])))
 
 if __name__ == "__main__":
-    create_prompt_test()
+    build_prompt_test()

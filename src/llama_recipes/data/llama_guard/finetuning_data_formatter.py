@@ -1,3 +1,6 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# This software may be used and distributed according to the terms of the Llama Guard License Agreement.
+
 import copy
 import random
 from dataclasses import dataclass
@@ -23,14 +26,14 @@ class ExplanationPosition(Enum):
 
 
 @dataclass
-class LlamaGuardPromptConfig:
+class LlamaGuardPromptConfigs:
     instructions_format_string: str
     should_include_category_descriptions: bool
     should_shuffle_category_codes: bool = True
 
 
 @dataclass
-class LlamaGuardGenerationConfig:
+class LlamaGuardGenerationConfigs:
     should_list_violated_codes: bool
     explanation_position: Optional[ExplanationPosition]
 
@@ -47,8 +50,8 @@ class AugmentationConfigs:
 @dataclass
 class FormatterConfigs:
     guidelines: Guidelines
-    llama_guard_prompt_configs: LlamaGuardPromptConfig
-    llama_guard_generation_configs: LlamaGuardGenerationConfig
+    llama_guard_prompt_configs: LlamaGuardPromptConfigs
+    llama_guard_generation_configs: LlamaGuardGenerationConfigs
     augmentation_configs: AugmentationConfigs
     # Allows subsequent reruns to reuse a stable seed for reproducibility
     random_seed: int = 42

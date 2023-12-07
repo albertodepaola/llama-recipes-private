@@ -260,9 +260,9 @@ class LlamaGuardSafetyChecker(object):
                 model_prompt = model_prompt.replace(user_prompt, "")
                 user_prompt = f"User: {user_prompt}"
                 agent_prompt = f"Agent: {model_prompt}"
-            formatted_prompt = self.AGENT_PROMPT_TEMPLATE.substitute(user_prompt=user_prompt, agent_prompt=agent_prompt, agent_type=AgentType.AGENT)
+            formatted_prompt = self.AGENT_PROMPT_TEMPLATE.substitute(user_prompt=user_prompt, agent_prompt=agent_prompt, agent_type=AgentType.AGENT.value)
         else:
-            formatted_prompt = self.USER_PROMPT_TEMPLATE.substitute(prompt=model_prompt, agent_type=AgentType.USER)
+            formatted_prompt = self.USER_PROMPT_TEMPLATE.substitute(prompt=model_prompt, agent_type=AgentType.USER.value)
 
         
         generator = Llama.build(

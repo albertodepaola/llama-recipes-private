@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from string import Template
-from typing import List, Tuple
+from typing import List
 from enum import Enum
 
 class AgentType(Enum):

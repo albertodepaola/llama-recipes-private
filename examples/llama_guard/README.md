@@ -2,7 +2,7 @@
 This folder contains the files to run inference with Llama Guard and the function to plug it into the safety_checker run in the inference script
 
 ## Requirements
-1. Llama guard model weights downloaded
+1. Llama guard model weights downloaded. To download, follow the steps shown [here](https://github.com/facebookresearch/PurpleLlama/tree/main/Llama-Guard#download)
 2. Llama recipes dependencies installed 
 3. A GPU with at least 21 GB of free RAM to load the 7B model. To run both Llama 2 7B and Llama Guard, multiple GPUS or a single one with additional memory is required.
 

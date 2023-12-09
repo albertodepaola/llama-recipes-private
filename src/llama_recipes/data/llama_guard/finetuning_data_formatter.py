@@ -41,10 +41,16 @@ class LlamaGuardGenerationConfigs:
 @dataclass
 class AugmentationConfigs:
     probability_to_add_safe_examples_with_empty_responses: float = 0
+    explanation_for_augmentation_with_safe_example_with_empty_response: Optional[
+        str
+    ] = None
     should_add_examples_with_dropped_nonviolated_prompt_categories: bool = True
     should_add_examples_with_dropped_violated_and_nonviolated_prompt_categories: bool = (
         False
     )
+    explanation_for_augmentation_with_dropped_violated_and_nonviolated_prompt_categories: Optional[
+        str
+    ] = None
 
 
 @dataclass
@@ -91,6 +97,8 @@ def create_formatted_finetuning_examples(
     in the llama guard prompts of the augmented examples. We occasionally need to
     convert between the two.
     """
+    _verify_formatter_configs(formatter_configs)
+
     random.seed(formatter_configs.random_seed)
 
     indices_of_all_categories = range(len(formatter_configs.guidelines.categories))
@@ -113,6 +121,41 @@ def create_formatted_finetuning_examples(
         )
 
     return to_return
+
+
+def _verify_formatter_configs(
+    formatter_configs: FormatterConfigs,
+) -> None:
+    if (
+        formatter_configs.augmentation_configs.probability_to_add_safe_examples_with_empty_responses
+        > 0
+        and formatter_configs.llama_guard_generation_configs.explanation_position
+        is not None
+        and formatter_configs.augmentation_configs.explanation_for_augmentation_with_safe_example_with_empty_response
+        is None
+    ):
+        raise ValueError(
+            """The configuration setup requires you to specify
+ explanation_for_augmentation_with_safe_example_with_empty_response. This is an
+ explanation that we use for dynamically-created safe augmentation examples.
+ Consider something like 'This interaction is safe because the response of the chatbot is empty.'"""
+        )
+
+    if (
+        formatter_configs.augmentation_configs.should_add_examples_with_dropped_violated_and_nonviolated_prompt_categories
+        > 0
+        and formatter_configs.llama_guard_generation_configs.explanation_position
+        is not None
+        and formatter_configs.augmentation_configs.explanation_for_augmentation_with_dropped_violated_and_nonviolated_prompt_categories
+        is None
+    ):
+        raise ValueError(
+            """The configuration setup requires you to specify
+ explanation_for_augmentation_with_dropped_violated_and_nonviolated_prompt_categories.
+ This is an explanation that we use for dynamically-created safe augmentation examples.
+ Consider something like 'This interaction is safe because any riskiness it contains
+ is related to violation categories that we're explicitly not trying to detect here.'"""
+        )
 
 
 def _create_formatted_finetuning_example(
@@ -181,12 +224,12 @@ def _create_llama_guard_prompt(
 
 
 def _serialize_conversation(conversation: Dict[str, str]) -> str:
-    conversation = []
+    conversation_as_list = []
 
     for speaker, message in conversation.items():
-        conversation.append(f"{speaker}: {message}")
+        conversation_as_list.append(f"{speaker}: {message}")
 
-    return "\n\n".join(conversation)
+    return "\n\n".join(conversation_as_list)
 
 
 def _create_llama_guard_generation(
@@ -228,7 +271,7 @@ def _create_llama_guard_generation(
     if explanation_position == ExplanationPosition.BEFORE_DECISION:
         to_return = f"Explanation: {training_example.explanation}\n{to_return}"
     elif explanation_position == ExplanationPosition.AFTER_DECISION:
-        to_return = f"{to_return}\nExplanation: {training_example[formatter_configs.explanation_key]}"
+        to_return = f"{to_return}\nExplanation: {training_example.explanation}"
 
     return to_return
 
@@ -293,6 +336,9 @@ def _maybe_add_safe_example_with_empty_response(
         training_example_copy.response = ""
         training_example_copy.label = "safe"
         training_example_copy.violated_category_codes = []
+        training_example_copy.explanation = (
+            formatter_configs.augmentation_configs.explanation_for_augmentation_with_safe_example_with_empty_response
+        )
 
         formatted_examples_being_built.append(
             _create_formatted_finetuning_example(
@@ -359,12 +405,12 @@ def _maybe_add_example_with_dropped_nonviolated_prompt_categories(
     If a prompt+response pair does not violate certain categories, we can augment
     the data by duplicating the training example but removing some of the non-violated
     categories from the llama guard prompt. This facilitates removing categories from
-    the guard llama prompt at inference time without any additional finetuning.
+    the llama guard prompt at inference time without any additional finetuning.
     """
     if (
         not formatter_configs.augmentation_configs.should_add_examples_with_dropped_nonviolated_prompt_categories
     ):
-        pass
+        return
 
     number_of_categories_to_drop = random.randint(0, len(nonviolated_category_indices))
 
@@ -404,7 +450,7 @@ def _maybe_add_example_with_dropped_violated_and_nonviolated_prompt_categories(
         training_example.label == "safe"
         or not formatter_configs.augmentation_configs.should_add_examples_with_dropped_violated_and_nonviolated_prompt_categories
     ):
-        pass
+        return
 
     random_nonviolated_category_indices_to_drop = random.sample(
         nonviolated_category_indices,
@@ -420,6 +466,9 @@ def _maybe_add_example_with_dropped_violated_and_nonviolated_prompt_categories(
     training_example_copy = copy.deepcopy(training_example)
     training_example_copy.label = "safe"
     training_example_copy.violated_category_codes = []
+    training_example_copy.explanation = (
+        formatter_configs.augmentation_configs.explanation_for_augmentation_with_dropped_violated_and_nonviolated_prompt_categories
+    )
 
     formatted_examples_being_built.append(
         _create_formatted_finetuning_example(
